@@ -651,17 +651,17 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
         {/* ========== RIGHT PANEL (sticky) — Action Plan Checklist ========== */}
         <div className="lg:w-[28%] lg:sticky lg:top-20 self-start">
-          {actions.length > 0 && (
+          <h2
+            className="text-xl font-bold mb-2"
+            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+          >
+            What to do today
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Based on your most recent visit
+          </p>
+          {actions.length > 0 ? (
             <div>
-              <h2
-                className="text-xl font-bold mb-2"
-                style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-              >
-                What to do today
-              </h2>
-              <p className="text-sm text-gray-500 mb-4">
-                Based on your most recent visit
-              </p>
 
               <div className="space-y-2">
                 {actions.map((action, idx) => {
@@ -731,6 +731,11 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                   );
                 })}
               </div>
+            </div>
+          ) : (
+            <div className="bg-white shadow-sm rounded-lg p-6 text-center">
+              <CheckCircle size={32} className="text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No action items yet. They will appear after your first visit.</p>
             </div>
           )}
         </div>
