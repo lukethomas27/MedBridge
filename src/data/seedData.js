@@ -26,6 +26,46 @@ export const SEED_DATA = {
       doctorId: 'doc-1',
       sessions: [
         {
+          id: 'session-s2',
+          date: daysAgo(3),
+          transcription:
+            'Follow-up visit for persistent cough. Patient reports cough frequency has decreased by approximately 50% over the past two weeks. Still present at night but less disruptive. No new symptoms. Blood pressure 124/78 — well controlled. Reviewed cough diary: average 4-5 episodes per day, down from 10+. Given improvement trend, will continue Lisinopril for now rather than switching. If cough does not fully resolve in 3 more weeks, will transition to Losartan. Patient tolerating Cetirizine well. Seasonal allergies mild this year. Advised continued hydration and monitoring. Next follow-up in 3 weeks or sooner if symptoms worsen.',
+          insights: {
+            confidence: 91,
+            summary:
+              'Follow-up shows significant improvement in cough frequency (~50% reduction). BP remains well controlled at 124/78. Decision to continue current Lisinopril regimen with conditional plan to switch to ARB if cough persists beyond 3 weeks. Low acute risk.',
+            plainSummary:
+              'Great news — your cough is getting better. It has decreased by about half since your last visit. Your blood pressure is in a good range. Your doctor has decided to keep you on the same medication for now, but will switch it if the cough does not go away completely in the next three weeks.',
+            simpleSummary:
+              'Your cough is much better. Your doctor is keeping your medicine the same for now. Come back in 3 weeks.',
+            differentials: [
+              { label: 'ACE inhibitor-induced cough (improving)', pct: 55 },
+              { label: 'Residual post-nasal drip', pct: 30 },
+              { label: 'Resolved viral component', pct: 15 },
+            ],
+            medicationFlags: [],
+            wearableNote:
+              'Sleep quality improved — average 7.1 hours vs 6.4 hours at last visit. Resting HR stable at 70 bpm.',
+            environmentalNote:
+              'Victoria, BC: AQI 38 (Good). Pollen levels low this week — favorable for respiratory symptoms.',
+            actionsForDoctor: [
+              'Continue Lisinopril; reassess at 3-week follow-up.',
+              'Order baseline spirometry if cough recurs or worsens.',
+            ],
+            actionsForPatient: [
+              { icon: '💊', text: 'Keep taking Lisinopril 10mg every morning — do not stop without asking your doctor', category: 'medication' },
+              { icon: '💊', text: 'Take Cetirizine as needed if you notice allergy symptoms', category: 'medication' },
+              { icon: '📋', text: 'Continue tracking your cough in your diary', category: 'activity' },
+              { icon: '🚶', text: 'Light daily walks (20-30 min) to support cardiovascular health', category: 'activity' },
+              { icon: '🍎', text: 'Maintain good hydration — aim for 8 glasses of water daily', category: 'diet' },
+              { icon: '⚠', text: 'If cough suddenly worsens or you develop shortness of breath, contact your doctor immediately', category: 'warning' },
+              { icon: '📅', text: 'Next appointment in 3 weeks — book now to secure your slot', category: 'followup' },
+            ],
+            delta: 'Cough frequency reduced ~50% since last visit. BP improved from 128/82 to 124/78. Sleep quality up. Overall positive trend.',
+            riskLevel: 'low',
+          },
+        },
+        {
           id: 'session-s1',
           date: daysAgo(14),
           transcription:
@@ -64,46 +104,6 @@ export const SEED_DATA = {
             ],
             delta: 'First session — no prior data for comparison.',
             riskLevel: 'medium',
-          },
-        },
-        {
-          id: 'session-s2',
-          date: daysAgo(3),
-          transcription:
-            'Follow-up visit for persistent cough. Patient reports cough frequency has decreased by approximately 50% over the past two weeks. Still present at night but less disruptive. No new symptoms. Blood pressure 124/78 — well controlled. Reviewed cough diary: average 4-5 episodes per day, down from 10+. Given improvement trend, will continue Lisinopril for now rather than switching. If cough does not fully resolve in 3 more weeks, will transition to Losartan. Patient tolerating Cetirizine well. Seasonal allergies mild this year. Advised continued hydration and monitoring. Next follow-up in 3 weeks or sooner if symptoms worsen.',
-          insights: {
-            confidence: 91,
-            summary:
-              'Follow-up shows significant improvement in cough frequency (~50% reduction). BP remains well controlled at 124/78. Decision to continue current Lisinopril regimen with conditional plan to switch to ARB if cough persists beyond 3 weeks. Low acute risk.',
-            plainSummary:
-              'Great news — your cough is getting better. It has decreased by about half since your last visit. Your blood pressure is in a good range. Your doctor has decided to keep you on the same medication for now, but will switch it if the cough does not go away completely in the next three weeks.',
-            simpleSummary:
-              'Your cough is much better. Your doctor is keeping your medicine the same for now. Come back in 3 weeks.',
-            differentials: [
-              { label: 'ACE inhibitor-induced cough (improving)', pct: 55 },
-              { label: 'Residual post-nasal drip', pct: 30 },
-              { label: 'Resolved viral component', pct: 15 },
-            ],
-            medicationFlags: [],
-            wearableNote:
-              'Sleep quality improved — average 7.1 hours vs 6.4 hours at last visit. Resting HR stable at 70 bpm.',
-            environmentalNote:
-              'Victoria, BC: AQI 38 (Good). Pollen levels low this week — favorable for respiratory symptoms.',
-            actionsForDoctor: [
-              'Continue Lisinopril; reassess at 3-week follow-up.',
-              'Order baseline spirometry if cough recurs or worsens.',
-            ],
-            actionsForPatient: [
-              { icon: '💊', text: 'Keep taking Lisinopril 10mg every morning — do not stop without asking your doctor', category: 'medication' },
-              { icon: '💊', text: 'Take Cetirizine as needed if you notice allergy symptoms', category: 'medication' },
-              { icon: '📋', text: 'Continue tracking your cough in your diary', category: 'activity' },
-              { icon: '🚶', text: 'Light daily walks (20-30 min) to support cardiovascular health', category: 'activity' },
-              { icon: '🍎', text: 'Maintain good hydration — aim for 8 glasses of water daily', category: 'diet' },
-              { icon: '⚠', text: 'If cough suddenly worsens or you develop shortness of breath, contact your doctor immediately', category: 'warning' },
-              { icon: '📅', text: 'Next appointment in 3 weeks — book now to secure your slot', category: 'followup' },
-            ],
-            delta: 'Cough frequency reduced ~50% since last visit. BP improved from 128/82 to 124/78. Sleep quality up. Overall positive trend.',
-            riskLevel: 'low',
           },
         },
       ],

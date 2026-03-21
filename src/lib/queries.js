@@ -60,7 +60,7 @@ async function fetchSessionsForPatient(patientId) {
     .from('sessions')
     .select('*')
     .eq('patient_id', patientId)
-    .order('date', { ascending: true });
+    .order('date', { ascending: false });
   if (error) throw error;
 
   const fullSessions = await Promise.all(
