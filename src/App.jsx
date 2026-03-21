@@ -1,6 +1,6 @@
 // HealthForge — Main App Shell (Supabase-backed)
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { fetchFirstDoctor, fetchPatientsForDoctor, fetchPatient } from './lib/queries';
 import LandingPage from './components/LandingPage';

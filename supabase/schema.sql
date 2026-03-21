@@ -61,6 +61,7 @@ create table insights (
   environmental_note text,
   actions_for_doctor text[] default '{}',
   delta text,
+  doctor_note text,
   created_at timestamptz default now()
 );
 
@@ -130,7 +131,8 @@ select
   i.wearable_note,
   i.environmental_note,
   i.actions_for_doctor,
-  i.delta
+  i.delta,
+  i.doctor_note
 from sessions s
 left join insights i on i.session_id = s.id
 order by s.date desc;
