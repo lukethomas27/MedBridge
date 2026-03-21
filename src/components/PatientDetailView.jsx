@@ -470,11 +470,10 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient }) 
                             </button>
                             <button
                               onClick={() => toggleRecording(session.id)}
-                              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded transition-colors ${
-                                recordingSessionId === session.id
+                              className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded transition-colors ${recordingSessionId === session.id
                                   ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 animate-pulse'
                                   : 'text-gray-600 border border-gray-300 hover:bg-gray-50'
-                              }`}
+                                }`}
                             >
                               <Mic className="w-3.5 h-3.5" />
                               {recordingSessionId === session.id ? 'Stop Recording' : 'Record'}
