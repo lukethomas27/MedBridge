@@ -168,5 +168,61 @@ export const SEED_DATA = {
         },
       ],
     },
+    {
+      id: 'patient-3',
+      name: 'Robert "Bob" Thompson',
+      dob: '1948-06-15',
+      age: 78,
+      email: 'bob.t@email.com',
+      allergies: ['Pollen', 'Dust mites'],
+      medications: ['Donepezil 10mg (nightly)', 'Amlodipine 5mg (morning)'],
+      city: 'Victoria, BC',
+      doctorId: 'doc-1',
+      sessions: [
+        {
+          id: 'session-b1',
+          date: daysAgo(2),
+          transcription:
+            'Routine follow-up for 78-year-old male with hypertension and early-stage Alzheimer\'s disease. Accompanied by daughter, Sarah. Patient reports occasional dizziness in the mornings. Blood pressure today 145/92 — slightly elevated. Heart rate 72 bpm. Medication review: Donepezil 10mg and Amlodipine 5mg. Sarah reports Bob has been forgetting his morning Amlodipine occasionally. Cognitive screening (MMSE) shows slight decline since last year (23/30). Lungs clear. Neurological exam stable. Plan: Increase Amlodipine to 10mg daily. Discussed importance of medication adherence. Sarah will implement a pill organizer and smart reminder system. Bob encouraged to stay physically active with supervised daily walks. Follow-up in 1 month.',
+          insights: {
+            confidence: 88,
+            summary:
+              'Elderly patient with hypertension and early-stage Alzheimer\'s. BP elevated (145/92) likely due to inconsistent Amlodipine adherence. Cognitive screening indicates slight decline (MMSE 23/30). Therapy escalated to Amlodipine 10mg. Family involvement (daughter) is critical for medication management and safety.',
+            plainSummary:
+              'Bob\'s blood pressure is a bit high right now, mostly because he has been forgetting his morning medicine. His memory test showed a small decline. The doctor is increasing his blood pressure pill to a higher dose. Sarah, you will need to help him with a pill organizer to make sure he takes it every day. He should also go for a walk with you once a day.',
+            simpleSummary:
+              'Bob needs to take his new, stronger heart pill every morning. Sarah will help him with a pill box. Go for a walk together every day.',
+            differentials: [
+              { label: 'Hypertension — medication non-adherence', pct: 60 },
+              { label: 'Early-stage Alzheimer\'s disease', pct: 35 },
+              { label: 'Orthostatic hypotension risk', pct: 5 },
+            ],
+            medicationFlags: [
+              'Increased Amlodipine from 5mg to 10mg daily.',
+              'Monitor for dizziness after dose increase.',
+            ],
+            wearableNote:
+              'Steps are low (1,500/day). Sleep is fragmented with several nighttime wake periods. Resting HR 72 bpm.',
+            environmentalNote:
+              'Victoria, BC: Cold weather currently — recommend indoor exercise or proper layering for walks.',
+            actionsForDoctor: [
+              'Implement medication reminder system with family.',
+              'Re-screen MMSE in 6 months.',
+              'Schedule follow-up for BP check in 4 weeks.',
+            ],
+            actionsForPatient: [
+              { icon: '💊', text: 'Start taking NEW Amlodipine 10mg dose every morning', category: 'medication' },
+              { icon: '💊', text: 'Continue Donepezil 10mg every night before bed', category: 'medication' },
+              { icon: '📅', text: 'Use a pill organizer for all morning and evening medicines', category: 'activity' },
+              { icon: '🚶', text: 'Daily 20-minute walk with Sarah to stay active', category: 'activity' },
+              { icon: '⚠', text: 'If Bob feels dizziness when standing up, please notify the doctor', category: 'warning' },
+              { icon: '📅', text: 'Follow-up appointment for blood pressure check in 4 weeks', category: 'followup' },
+            ],
+            delta: 'MMSE score down 2 points from previous year. BP up from 135/85 to 145/92.',
+            riskLevel: 'medium',
+          },
+        },
+      ],
+    },
   ],
 };

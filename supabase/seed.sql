@@ -36,6 +36,16 @@ insert into patients (id, doctor_id, name, dob, email, allergies, medications, c
     array['Sulfa drugs'],
     array['Metformin 500mg (twice daily)', 'Atorvastatin 20mg (nightly)'],
     'Victoria, BC'
+  ),
+  (
+    'b0000000-0000-0000-0000-000000000003',
+    'a0000000-0000-0000-0000-000000000001',
+    'Robert "Bob" Thompson',
+    '1948-06-15',
+    'bob.t@email.com',
+    array['Pollen', 'Dust mites'],
+    array['Donepezil 10mg (nightly)', 'Amlodipine 5mg (morning)'],
+    'Victoria, BC'
   );
 
 -- ============================================
@@ -62,6 +72,13 @@ insert into sessions (id, patient_id, date, transcription) values
     'b0000000-0000-0000-0000-000000000002',
     current_date - interval '7 days',
     'Diabetes management check. HbA1c came back at 7.8% — above target of 7.0%. Fasting glucose this morning 156 mg/dL. Patient reports inconsistent medication adherence, missing Metformin doses 2-3 times per week. Diet review: high carbohydrate intake, frequent fast food. Weight 210 lbs, BMI 30.2. Blood pressure 138/88 — borderline elevated. Discussed importance of medication compliance and dietary modifications. Considering adding a second agent if HbA1c does not improve. Cholesterol panel: LDL 142, HDL 38 — suboptimal. Atorvastatin dose may need increase. Referred to nutritionist. Follow-up in 6 weeks with repeat labs.'
+  ),
+  -- Robert "Bob" Thompson — Session 1 (2 days ago)
+  (
+    'c0000000-0000-0000-0000-000000000004',
+    'b0000000-0000-0000-0000-000000000003',
+    current_date - interval '2 days',
+    'Routine follow-up for 78-year-old male with hypertension and early-stage Alzheimer''s disease. Accompanied by daughter, Sarah. Patient reports occasional dizziness in the mornings. Blood pressure today 145/92 — slightly elevated. Heart rate 72 bpm. Medication review: Donepezil 10mg and Amlodipine 5mg. Sarah reports Bob has been forgetting his morning Amlodipine occasionally. Cognitive screening (MMSE) shows slight decline since last year (23/30). Lungs clear. Neurological exam stable. Plan: Increase Amlodipine to 10mg daily. Discussed importance of medication adherence. Sarah will implement a pill organizer and smart reminder system. Bob encouraged to stay physically active with supervised daily walks. Follow-up in 1 month.'
   );
 
 -- ============================================
@@ -115,6 +132,22 @@ insert into insights (id, session_id, confidence, risk_level, summary, plain_sum
     'Victoria, BC: No acute environmental concerns. AQI 42 (Good). Outdoor exercise conditions favorable.',
     array['Reinforce medication adherence; consider pill organizer or reminders.', 'If HbA1c does not improve in 6 weeks, add second oral agent or GLP-1 agonist.', 'Consider increasing Atorvastatin to 40mg given LDL 142.', 'Monitor blood pressure — if sustained >135/85, initiate antihypertensive.'],
     'First session — no prior data for comparison.'
+  ),
+  -- Robert "Bob" Session 1
+  (
+    'e0000000-0000-0000-0000-000000000004',
+    'c0000000-0000-0000-0000-000000000004',
+    88,
+    'medium',
+    'Elderly patient with hypertension and early-stage Alzheimer''s. BP elevated (145/92) likely due to inconsistent Amlodipine adherence. Cognitive screening indicates slight decline (MMSE 23/30). Therapy escalated to Amlodipine 10mg. Family involvement (daughter) is critical for medication management and safety.',
+    'Bob''s blood pressure is a bit high right now, mostly because he has been forgetting his morning medicine. His memory test showed a small decline. The doctor is increasing his blood pressure pill to a higher dose. Sarah, you will need to help him with a pill organizer to make sure he takes it every day. He should also go for a walk with you once a day.',
+    'Bob needs to take his new, stronger heart pill every morning. Sarah will help him with a pill box. Go for a walk together every day.',
+    '[{"label": "Hypertension — medication non-adherence", "pct": 60}, {"label": "Early-stage Alzheimer''s disease", "pct": 35}, {"label": "Orthostatic hypotension risk", "pct": 5}]'::jsonb,
+    array['Increased Amlodipine from 5mg to 10mg daily.', 'Monitor for dizziness after dose increase.'],
+    'Steps are low (1,500/day). Sleep is fragmented with several nighttime wake periods. Resting HR 72 bpm.',
+    'Victoria, BC: Cold weather currently — recommend indoor exercise or proper layering for walks.',
+    array['Implement medication reminder system with family.', 'Re-screen MMSE in 6 months.', 'Schedule follow-up for BP check in 4 weeks.'],
+    'MMSE score down 2 points from previous year. BP up from 135/85 to 145/92.'
   );
 
 -- ============================================
@@ -151,3 +184,18 @@ insert into patient_actions (insight_id, icon, text, category, sort_order) value
   ('e0000000-0000-0000-0000-000000000003', '⚠', 'Do NOT stop taking any medication without talking to your doctor first', 'warning', 7),
   ('e0000000-0000-0000-0000-000000000003', '📅', 'Nutritionist appointment — call to schedule this week', 'followup', 8),
   ('e0000000-0000-0000-0000-000000000003', '📅', 'Follow-up with blood work in 6 weeks', 'followup', 9);
+
+-- Bob Session 1 actions
+insert into patient_actions (insight_id, icon, text, category, sort_order) values
+  ('e0000000-0000-0000-0000-000000000004', '💊', 'Start taking NEW Amlodipine 10mg dose every morning', 'medication', 1),
+  ('e0000000-0000-0000-0000-000000000004', '💊', 'Continue Donepezil 10mg every night before bed', 'medication', 2),
+  ('e0000000-0000-0000-0000-000000000004', '📅', 'Use a pill organizer for all morning and evening medicines', 'activity', 3),
+  ('e0000000-0000-0000-0000-000000000004', '🚶', 'Daily 20-minute walk with Sarah to stay active', 'activity', 4),
+  ('e0000000-0000-0000-0000-000000000004', '⚠', 'If Bob feels dizzy when standing up, please notify the doctor', 'warning', 5),
+  ('e0000000-0000-0000-0000-000000000004', '📅', 'Follow-up appointment for blood pressure check in 4 weeks', 'followup', 6);
+
+-- ============================================
+-- FAMILY SHARING
+-- ============================================
+insert into patient_shares (id, patient_id, shared_with_email, access_type, status, token) values
+  ('f0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000003', 'sarah.thompson@email.com', 'full_history', 'accepted', 'demo-token-bob-history');
