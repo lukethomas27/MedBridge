@@ -1,5 +1,7 @@
-import { ArrowLeft, Settings, RotateCcw, Sun, Moon, Eye, Ear, Palette, Move, SortDesc, Expand, Bell, Save, EyeOff, Clock, Share2 } from 'lucide-react';
+import { ArrowLeft, Settings, RotateCcw, Sun, Moon, Eye, Ear, Palette, Move, SortDesc, Expand, Bell, Save, EyeOff, Clock, Share2, Database, Trash2, CheckCircle2 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
+import { deleteEmptySessions } from '../lib/queries';
+import { useState } from 'react';
 
 function Toggle({ checked, onChange, label, description }) {
   return (
@@ -89,7 +91,25 @@ function SettingsCard({ title, icon: Icon, children }) {
 
 export default function SettingsPage({ currentUser, onBack }) {
   const { settings, updateSetting, resetSettings } = useSettings();
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanedCount, setCleanedCount] = useState(null);
   const role = currentUser?.role;
+
+  const handleCleanup = async () => {
+    if (!confirm('This will permanently delete all sessions with no transcription. This cannot be undone. Continue?')) return;
+    setCleaning(true);
+    setCleanedCount(null);
+    try {
+      const count = await deleteEmptySessions();
+      setCleanedCount(count);
+      setTimeout(() => setCleanedCount(null), 5000);
+    } catch (err) {
+      console.error('Cleanup failed:', err);
+      alert('Failed to clean up sessions.');
+    } finally {
+      setCleaning(false);
+    }
+  };
 
   const handleReset = () => {
     if (confirm('Reset all settings to defaults?')) {
@@ -178,6 +198,40 @@ export default function SettingsPage({ currentUser, onBack }) {
             onChange={(v) => updateSetting('colorBlindFriendly', v)}
           />
         </SettingsCard>
+
+        {/* Maintenance Section (Doctor only) */}
+        {role === 'doctor' && (
+          <SettingsCard title="Data Maintenance" icon={Database}>
+            <div className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 mr-4">
+                  <span className="text-sm font-semibold setting-text block">Cleanup Empty Sessions</span>
+                  <span className="text-xs setting-muted mt-0.5 block">
+                    Remove all session records that don't have any transcription data.
+                  </span>
+                </div>
+                <button
+                  onClick={handleCleanup}
+                  disabled={cleaning}
+                  className={`flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded transition-all duration-200 ${
+                    cleaning 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                  }`}
+                >
+                  <Trash2 size={14} />
+                  {cleaning ? 'Cleaning...' : 'Run Cleanup'}
+                </button>
+              </div>
+              {cleanedCount !== null && (
+                <div className="mt-4 p-3 bg-teal-50 border border-teal-100 rounded-lg flex items-center gap-2 text-teal-800 text-sm">
+                  <CheckCircle2 size={16} className="text-teal-500" />
+                  Successfully deleted {cleanedCount} empty sessions.
+                </div>
+              )}
+            </div>
+          </SettingsCard>
+        )}
 
         {/* Doctor Section */}
         {role === 'doctor' && (

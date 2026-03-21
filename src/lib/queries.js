@@ -340,3 +340,59 @@ export async function updateInsightNote(sessionId, doctorNote) {
     .eq('session_id', sessionId);
   if (error) throw error;
 }
+
+// Delete a single session and its cascading data
+export async function deleteSession(sessionId) {
+  const { data: insight } = await supabase
+    .from('insights')
+    .select('id')
+    .eq('session_id', sessionId)
+    .maybeSingle();
+
+  if (insight) {
+    await supabase.from('patient_actions').delete().eq('insight_id', insight.id);
+    await supabase.from('insights').delete().eq('id', insight.id);
+  }
+
+  const { error } = await supabase
+    .from('sessions')
+    .delete()
+    .eq('id', sessionId);
+
+  if (error) throw error;
+}
+
+// Bulk delete all sessions that have no transcription
+export async function deleteEmptySessions() {
+  const { data: emptySessions, error: fetchErr } = await supabase
+    .from('sessions')
+    .select('id')
+    .or('transcription.eq.,transcription.is.null');
+
+  if (fetchErr) throw fetchErr;
+
+  if (emptySessions && emptySessions.length > 0) {
+    const ids = emptySessions.map(s => s.id);
+    
+    // First clean up insights and actions for these IDs
+    const { data: insights } = await supabase
+      .from('insights')
+      .select('id')
+      .in('session_id', ids);
+
+    if (insights && insights.length > 0) {
+      const insightIds = insights.map(i => i.id);
+      await supabase.from('patient_actions').delete().in('insight_id', insightIds);
+      await supabase.from('insights').delete().in('id', insightIds);
+    }
+
+    const { error: deleteErr } = await supabase
+      .from('sessions')
+      .delete()
+      .in('id', ids);
+
+    if (deleteErr) throw deleteErr;
+    return ids.length;
+  }
+  return 0;
+}
