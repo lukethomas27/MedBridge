@@ -62,6 +62,7 @@ create table insights (
   actions_for_doctor text[] default '{}',
   delta text,
   doctor_note text,
+  approved boolean not null default false,
   created_at timestamptz default now()
 );
 

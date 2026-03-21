@@ -55,7 +55,12 @@ function sortActions(actions) {
 export default function PatientDashboard({ patient, onLogout, onOpenSettings }) {
   const { settings } = useSettings();
   const firstName = patient.name?.split(' ')[0] || 'there';
-  const sessions = patient.sessions || [];
+  const allSessions = patient.sessions || [];
+  // Only show insights that have been approved by the doctor
+  const sessions = allSessions.map((s) => ({
+    ...s,
+    insights: s.insights?.approved ? s.insights : null,
+  }));
   const mostRecent = sessions.length > 0 ? sessions[0] : null;
   const mostRecentInsights = mostRecent?.insights || null;
 
@@ -475,8 +480,10 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           </h2>
 
           <div className="space-y-3">
-            {sessions.map((session) => {
+            {sessions.map((session, sessionIdx) => {
               const insights = session.insights;
+              const rawInsights = allSessions[sessionIdx]?.insights;
+              const pendingReview = rawInsights && !rawInsights.approved;
               const isExpanded = expandedSessionId === session.id;
               const confidence = insights?.confidence;
               const confLabel =
@@ -531,6 +538,12 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                               <span className="flex items-center gap-1 text-xs text-teal-600 font-medium">
                                 <UserCheck size={12} />
                                 Doctor Verified
+                              </span>
+                            )}
+                            {pendingReview && !insights && (
+                              <span className="flex items-center gap-1 text-xs text-amber-500 italic">
+                                <Clock size={12} />
+                                Insights pending doctor review
                               </span>
                             )}
                           </div>

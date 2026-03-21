@@ -14,6 +14,7 @@ import {
   X,
   Mic,
   UserCheck,
+  CheckCircle,
 } from 'lucide-react';
 import { generateInsights } from '../utils/generateInsights';
 import {
@@ -21,6 +22,7 @@ import {
   updateTranscription,
   saveInsights,
   updateInsightNote,
+  approveInsights,
 } from '../lib/queries';
 import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 import { useSettings } from '../context/SettingsContext';
@@ -259,6 +261,23 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       console.error('Error saving doctor note:', err);
     }
   };
+
+  const handleApproveInsights = useCallback(
+    async (sessionId) => {
+      try {
+        await approveInsights(sessionId);
+        const updatedSessions = patient.sessions.map((s) =>
+          s.id === sessionId
+            ? { ...s, insights: { ...s.insights, approved: true } }
+            : s
+        );
+        onUpdatePatient({ ...patient, sessions: updatedSessions });
+      } catch (err) {
+        console.error('Error approving insights:', err);
+      }
+    },
+    [patient, onUpdatePatient]
+  );
 
   const confidenceBadgeColor = (c) => {
     if (c >= 70) return 'border-[#00C9A7] text-teal-700 bg-teal-50';
@@ -883,15 +902,34 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
 
                     {/* Generate / Regenerate button */}
                     {!isLoading && (
-                      <button
-                        onClick={() => handleGenerateInsights(session)}
-                        className="w-full py-3 text-white text-sm font-medium rounded mt-4"
-                        style={{ backgroundColor: '#0B1929' }}
-                      >
-                        {insights
-                          ? 'Regenerate Insights'
-                          : 'Generate AI Insights'}
-                      </button>
+                      <div className="mt-4 space-y-2">
+                        <button
+                          onClick={() => handleGenerateInsights(session)}
+                          className="w-full py-3 text-white text-sm font-medium rounded"
+                          style={{ backgroundColor: '#0B1929' }}
+                        >
+                          {insights
+                            ? 'Regenerate Insights'
+                            : 'Generate AI Insights'}
+                        </button>
+
+                        {/* Approve / Release to patient */}
+                        {insights && !insights.approved && (
+                          <button
+                            onClick={() => handleApproveInsights(session.id)}
+                            className="w-full py-3 text-white text-sm font-medium rounded bg-teal-600 hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Approve &amp; Release to Patient
+                          </button>
+                        )}
+                        {insights?.approved && (
+                          <div className="flex items-center justify-center gap-2 py-2 text-sm text-teal-600 font-medium">
+                            <CheckCircle className="w-4 h-4" />
+                            Approved — Visible to patient
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}

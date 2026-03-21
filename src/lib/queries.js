@@ -104,6 +104,7 @@ async function fetchSessionsForPatient(patientId) {
               actionsForPatient,
               delta: insights.delta,
               doctorNote: insights.doctor_note,
+              approved: insights.approved || false,
             }
           : null,
       };
@@ -250,6 +251,7 @@ async function fetchSessionWithInsights(sessionId) {
           actionsForPatient,
           delta: insights.delta,
           doctorNote: insights.doctor_note,
+          approved: insights.approved || false,
         }
       : null,
   };
@@ -313,6 +315,7 @@ export async function saveInsights(sessionId, insights) {
       actions_for_doctor: insights.actionsForDoctor,
       delta: insights.delta,
       doctor_note: existing?.doctor_note || null,
+      approved: false,
     })
     .select()
     .single();
@@ -337,6 +340,15 @@ export async function updateInsightNote(sessionId, doctorNote) {
   const { error } = await supabase
     .from('insights')
     .update({ doctor_note: doctorNote })
+    .eq('session_id', sessionId);
+  if (error) throw error;
+}
+
+// Approve insights so they become visible to the patient
+export async function approveInsights(sessionId) {
+  const { error } = await supabase
+    .from('insights')
+    .update({ approved: true })
     .eq('session_id', sessionId);
   if (error) throw error;
 }

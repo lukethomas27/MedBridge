@@ -84,7 +84,7 @@ insert into sessions (id, patient_id, date, transcription) values
 -- ============================================
 -- INSIGHTS
 -- ============================================
-insert into insights (id, session_id, confidence, risk_level, summary, plain_summary, simple_summary, differentials, medication_flags, wearable_note, environmental_note, actions_for_doctor, delta) values
+insert into insights (id, session_id, confidence, risk_level, summary, plain_summary, simple_summary, differentials, medication_flags, wearable_note, environmental_note, actions_for_doctor, delta, approved) values
   -- Sarah Session 1
   (
     'e0000000-0000-0000-0000-000000000001',
@@ -99,7 +99,8 @@ insert into insights (id, session_id, confidence, risk_level, summary, plain_sum
     'Resting heart rate has remained stable (68-72 bpm). No significant sleep disruption detected beyond mild fragmentation on nights with reported cough episodes.',
     'Victoria, BC: AQI is 42 (Good). Moderate pollen levels — may contribute to post-nasal drip component.',
     array['Monitor cough for 2 additional weeks; schedule follow-up.', 'If cough persists, switch Lisinopril to Losartan 50mg and reassess in 4 weeks.'],
-    'First session — no prior data for comparison.'
+    'First session — no prior data for comparison.',
+    true
   ),
   -- Sarah Session 2
   (
@@ -115,7 +116,8 @@ insert into insights (id, session_id, confidence, risk_level, summary, plain_sum
     'Sleep quality improved — average 7.1 hours vs 6.4 hours at last visit. Resting HR stable at 70 bpm.',
     'Victoria, BC: AQI 38 (Good). Pollen levels low this week — favorable for respiratory symptoms.',
     array['Continue Lisinopril; reassess at 3-week follow-up.', 'Order baseline spirometry if cough recurs or worsens.'],
-    'Cough frequency reduced ~50% since last visit. BP improved from 128/82 to 124/78. Sleep quality up. Overall positive trend.'
+    'Cough frequency reduced ~50% since last visit. BP improved from 128/82 to 124/78. Sleep quality up. Overall positive trend.',
+    true
   ),
   -- James Session 1
   (
@@ -131,7 +133,8 @@ insert into insights (id, session_id, confidence, risk_level, summary, plain_sum
     'Resting heart rate elevated at 82 bpm. Activity levels low — average 2,800 steps/day. Sleep average 5.8 hours — below recommended.',
     'Victoria, BC: No acute environmental concerns. AQI 42 (Good). Outdoor exercise conditions favorable.',
     array['Reinforce medication adherence; consider pill organizer or reminders.', 'If HbA1c does not improve in 6 weeks, add second oral agent or GLP-1 agonist.', 'Consider increasing Atorvastatin to 40mg given LDL 142.', 'Monitor blood pressure — if sustained >135/85, initiate antihypertensive.'],
-    'First session — no prior data for comparison.'
+    'First session — no prior data for comparison.',
+    true
   ),
   -- Robert "Bob" Session 1
   (
@@ -147,7 +150,8 @@ insert into insights (id, session_id, confidence, risk_level, summary, plain_sum
     'Steps are low (1,500/day). Sleep is fragmented with several nighttime wake periods. Resting HR 72 bpm.',
     'Victoria, BC: Cold weather currently — recommend indoor exercise or proper layering for walks.',
     array['Implement medication reminder system with family.', 'Re-screen MMSE in 6 months.', 'Schedule follow-up for BP check in 4 weeks.'],
-    'MMSE score down 2 points from previous year. BP up from 135/85 to 145/92.'
+    'MMSE score down 2 points from previous year. BP up from 135/85 to 145/92.',
+    true
   );
 
 -- ============================================
