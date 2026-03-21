@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2, Settings, Activity, Wind } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 import ShareModal from './ShareModal';
 import { fetchSharesForPatient, revokeShare } from '../lib/queries';
 
@@ -33,6 +34,7 @@ function sortActions(actions) {
 }
 
 export default function PatientDashboard({ patient, onLogout, onOpenSettings }) {
+  const { settings } = useSettings();
   const firstName = patient.name?.split(' ')[0] || 'there';
   const sessions = patient.sessions || [];
   const mostRecent = sessions.length > 0 ? sessions[0] : null;
@@ -165,7 +167,10 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
   }
 
   const riskContent = getRiskContent();
-  const actions = sortActions(mostRecentInsights?.actionsForPatient || []);
+  const actions = sortActions(mostRecentInsights?.actionsForPatient || []).filter((action, idx) => {
+    if (settings.hideCompletedActions && checkedItems[idx]) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF', fontFamily: 'system-ui, sans-serif' }}>

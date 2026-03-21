@@ -17,6 +17,8 @@ import {
 import { generateInsights } from '../utils/generateInsights';
 import { createSession, updateTranscription, saveInsights } from '../lib/queries';
 import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
+import { useSettings } from '../context/SettingsContext';
+import { useEffect, useRef } from 'react';
 
 function ConfidenceGauge({ confidence }) {
   const radius = 48;
@@ -84,11 +86,21 @@ function LoadingSkeleton() {
 }
 
 export default function PatientDetailView({ patient, onBack, onUpdatePatient, onLogout }) {
-  const [expandedSessions, setExpandedSessions] = useState({});
+  const { settings } = useSettings();
+  const [expandedSessions, setExpandedSessions] = useState(() => {
+    if (settings.autoExpandSessions) {
+      const all = {};
+      (patient.sessions || []).forEach(s => all[s.id] = true);
+      return all;
+    }
+    return {};
+  });
   const [editingSessions, setEditingSessions] = useState({});
   const [editBuffers, setEditBuffers] = useState({});
   const [loadingSessions, setLoadingSessions] = useState({});
   const [recordingSessionId, setRecordingSessionId] = useState(null);
+
+  const autoSaveTimers = useRef({});
 
   const { isRecording, interimText, error: micError, startRecording, stopRecording } = useDeepgramTranscription();
 
@@ -174,6 +186,27 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       console.error('Error creating session:', err);
     }
   }, [patient, onUpdatePatient]);
+
+  const handleTranscriptionChange = useCallback((sessionId, value) => {
+    setEditBuffers(prev => ({ ...prev, [sessionId]: value }));
+
+    if (settings.autoSaveTranscriptions) {
+      if (autoSaveTimers.current[sessionId]) {
+        clearTimeout(autoSaveTimers.current[sessionId]);
+      }
+      autoSaveTimers.current[sessionId] = setTimeout(async () => {
+        try {
+          await updateTranscription(sessionId, value);
+          onUpdatePatient({
+            ...patient,
+            sessions: patient.sessions.map(s => s.id === sessionId ? { ...s, transcription: value } : s)
+          });
+        } catch (err) {
+          console.error("Auto-save error:", err);
+        }
+      }, 2000); // 2 second debounce
+    }
+  }, [settings.autoSaveTranscriptions, patient, onUpdatePatient]);
 
   const toggleRecording = useCallback((sessionId) => {
     if (recordingSessionId === sessionId) {
@@ -457,12 +490,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                         <div>
                           <textarea
                             value={editBuffers[session.id] || ''}
-                            onChange={(e) =>
-                              setEditBuffers((prev) => ({
-                                ...prev,
-                                [session.id]: e.target.value,
-                              }))
-                            }
+                            onChange={(e) => handleTranscriptionChange(session.id, e.target.value)}
                             className={`w-full bg-gray-50 p-4 rounded font-mono text-sm border-2 ${recordingSessionId === session.id ? 'border-red-400' : 'border-teal-400'} focus:outline-none resize-y min-h-[120px]`}
                           />
                           {recordingSessionId === session.id && interimText && (

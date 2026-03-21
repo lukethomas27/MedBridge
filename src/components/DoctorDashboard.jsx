@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, User, ChevronRight, AlertTriangle, Users, Settings } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -37,11 +38,33 @@ function riskBadgeClasses(level) {
 }
 
 export default function DoctorDashboard({ doctor, patients, onSelectPatient, onLogout, onOpenSettings }) {
+  const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPatients = patients.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPatients = patients
+    .filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      if (settings.patientSortOrder === 'nameAZ') {
+        return a.name.localeCompare(b.name);
+      }
+      if (settings.patientSortOrder === 'riskLevel') {
+        const getRiskScore = (p) => {
+          const latest = getLatestSession(p.sessions);
+          const conf = getConfidence(latest);
+          if (conf === null) return 0;
+          if (conf < 70) return 3;
+          if (conf < 85) return 2;
+          return 1;
+        };
+        return getRiskScore(b) - getRiskScore(a);
+      }
+      // Default: lastVisit
+      const getLatestDate = (p) => {
+        const latest = getLatestSession(p.sessions);
+        return latest ? new Date(latest.date).getTime() : 0;
+      };
+      return getLatestDate(b) - getLatestDate(a);
+    });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF', fontFamily: 'system-ui, sans-serif' }}>
@@ -183,7 +206,7 @@ export default function DoctorDashboard({ doctor, patients, onSelectPatient, onL
                           >
                             {confidence}
                           </div>
-                          {confidence < 70 && (
+                          {settings.criticalScoreAlerts && confidence < 70 && (
                             <div className="flex items-center gap-1 mt-1">
                               <AlertTriangle size={12} className="text-red-500" />
                               <span className="text-xs text-red-500">Review Required</span>
