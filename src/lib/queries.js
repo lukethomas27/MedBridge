@@ -103,6 +103,7 @@ async function fetchSessionsForPatient(patientId) {
               actionsForDoctor: insights.actions_for_doctor || [],
               actionsForPatient,
               delta: insights.delta,
+              doctorNote: insights.doctor_note,
             }
           : null,
       };
@@ -248,6 +249,7 @@ async function fetchSessionWithInsights(sessionId) {
           actionsForDoctor: insights.actions_for_doctor || [],
           actionsForPatient,
           delta: insights.delta,
+          doctorNote: insights.doctor_note,
         }
       : null,
   };
@@ -285,7 +287,7 @@ export async function saveInsights(sessionId, insights) {
   // Delete existing insights first
   const { data: existing } = await supabase
     .from('insights')
-    .select('id')
+    .select('id, doctor_note')
     .eq('session_id', sessionId)
     .maybeSingle();
 
@@ -294,7 +296,7 @@ export async function saveInsights(sessionId, insights) {
     await supabase.from('insights').delete().eq('id', existing.id);
   }
 
-  // Insert new insight
+  // Insert new insight (preserving doctor_note if it exists)
   const { data: newInsight, error } = await supabase
     .from('insights')
     .insert({
@@ -310,6 +312,7 @@ export async function saveInsights(sessionId, insights) {
       environmental_note: insights.environmentalNote,
       actions_for_doctor: insights.actionsForDoctor,
       delta: insights.delta,
+      doctor_note: existing?.doctor_note || null,
     })
     .select()
     .single();
@@ -327,4 +330,13 @@ export async function saveInsights(sessionId, insights) {
     const { error: actErr } = await supabase.from('patient_actions').insert(rows);
     if (actErr) throw actErr;
   }
+}
+
+// Update the doctor's manual addendum/note
+export async function updateInsightNote(sessionId, doctorNote) {
+  const { error } = await supabase
+    .from('insights')
+    .update({ doctor_note: doctorNote })
+    .eq('session_id', sessionId);
+  if (error) throw error;
 }

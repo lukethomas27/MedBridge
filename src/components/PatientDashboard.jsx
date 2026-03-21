@@ -1,5 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle, Heart, Share2, Shield, Trash2, Settings, Activity, Wind } from 'lucide-react';
+import {
+  User,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Heart,
+  Share2,
+  Shield,
+  Trash2,
+  Settings,
+  Activity,
+  Wind,
+  UserCheck,
+} from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 import ShareModal from './ShareModal';
 import { fetchSharesForPatient, revokeShare } from '../lib/queries';
@@ -16,7 +31,11 @@ const CATEGORY_STYLES = {
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  return d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
 
 function getConfidenceLabel(confidence) {
@@ -43,7 +62,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
   const [checkedItems, setCheckedItems] = useState({});
   const [expandedSessionId, setExpandedSessionId] = useState(null);
   const [readingLevels, setReadingLevels] = useState({});
-  
+
   // Sharing state
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [sharingSessionId, setSharingSessionId] = useState(null);
@@ -106,12 +125,15 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
     if (level === 'medium') {
       return {
         message: 'There are a few things to keep an eye on.',
-        icon: <AlertTriangle size={20} className="text-amber-500 flex-shrink-0" />,
+        icon: (
+          <AlertTriangle size={20} className="text-amber-500 flex-shrink-0" />
+        ),
       };
     }
     if (level === 'high') {
       return {
-        message: "Your doctor wants to make sure you're okay. Stay on top of your plan.",
+        message:
+          "Your doctor wants to make sure you're okay. Stay on top of your plan.",
         icon: <Heart size={20} className="text-rose-500 flex-shrink-0" />,
       };
     }
@@ -120,8 +142,10 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
   const getInsightText = (insights, level) => {
     if (!insights) return '';
-    if (level === 'simple') return insights.simpleSummary || insights.plainSummary || '';
-    if (level === 'detail') return insights.summary || insights.plainSummary || '';
+    if (level === 'simple')
+      return insights.simpleSummary || insights.plainSummary || '';
+    if (level === 'detail')
+      return insights.summary || insights.plainSummary || '';
     return insights.plainSummary || '';
   };
 
@@ -158,8 +182,12 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
         <div className="max-w-2xl mx-auto px-6 py-8 flex flex-col items-center justify-center mt-24 text-center">
           <Heart size={48} className="text-gray-300 mb-4" />
-          <p className="text-lg leading-relaxed text-gray-500" style={{ fontFamily: 'system-ui, sans-serif' }}>
-            Your doctor hasn't added any visits yet. They will appear here after your first appointment.
+          <p
+            className="text-lg leading-relaxed text-gray-500"
+            style={{ fontFamily: 'system-ui, sans-serif' }}
+          >
+            Your doctor hasn&apos;t added any visits yet. They will appear here
+            after your first appointment.
           </p>
         </div>
       </div>
@@ -173,7 +201,13 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F7F4EF', fontFamily: 'system-ui, sans-serif' }}>
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: '#F7F4EF',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
       {/* Navigation */}
       <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-6 flex items-center justify-between h-14">
@@ -182,12 +216,15 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
               className="inline-block w-2.5 h-2.5 rounded-full animate-pulse"
               style={{ backgroundColor: '#00C9A7' }}
             />
-            <span className="font-bold text-lg" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
+            <span
+              className="font-bold text-lg"
+              style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+            >
               HealthForge
             </span>
           </button>
           <div className="flex items-center gap-3 text-sm" style={{ color: '#0B1929' }}>
-            <button 
+            <button
               onClick={() => openShareModal()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full font-medium hover:bg-teal-100 transition-colors mr-2"
             >
@@ -223,7 +260,7 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
               Hi, {firstName}.
             </h1>
             {mostRecent && (
-              <button 
+              <button
                 onClick={() => openShareModal(mostRecent.id, mostRecent.date)}
                 className="text-gray-400 hover:text-teal-600 transition-colors"
                 title="Share this visit"
@@ -236,7 +273,10 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           {riskContent && (
             <div className="flex items-center gap-2 mb-3">
               {riskContent.icon}
-              <span className="text-lg leading-relaxed" style={{ color: '#0B1929' }}>
+              <span
+                className="text-lg leading-relaxed"
+                style={{ color: '#0B1929' }}
+              >
                 {riskContent.message}
               </span>
             </div>
@@ -249,13 +289,28 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
           )}
 
           {mostRecentInsights?.medicationFlags?.length > 0 && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 mb-4 space-y-2">
               {mostRecentInsights.medicationFlags.map((flag, i) => (
                 <div key={i} className="flex items-start gap-2 bg-amber-50 border-l-4 border-amber-400 rounded-r p-3">
                   <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-amber-800">{flag}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Highlighted Doctor Verification */}
+          {mostRecentInsights?.doctorNote && (
+            <div className="bg-[#0B1929] text-white p-5 rounded-lg shadow-lg mb-6 border-l-4 border-teal-400">
+              <div className="flex items-center gap-2 mb-2">
+                <UserCheck className="text-teal-400" size={18} />
+                <span className="text-xs font-bold uppercase tracking-widest text-teal-400">
+                  Doctor Verified Guidance
+                </span>
+              </div>
+              <p className="text-base italic leading-relaxed font-medium">
+                &quot;{mostRecentInsights.doctorNote}&quot;
+              </p>
             </div>
           )}
 
@@ -350,7 +405,9 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
             >
               What to do today
             </h2>
-            <p className="text-sm text-gray-500 mb-4">Based on your most recent visit</p>
+            <p className="text-sm text-gray-500 mb-4">
+              Based on your most recent visit
+            </p>
 
             <div className="space-y-2">
               {actions.map((action, idx) => {
@@ -365,23 +422,36 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                     className={`flex items-start gap-4 bg-white shadow-sm rounded-r-lg p-4 border-l-4 ${style.border} ${
                       isWarning ? 'bg-red-50/50' : ''
                     }`}
-                    style={isWarning ? { backgroundColor: 'rgba(254, 242, 242, 0.5)' } : {}}
+                    style={
+                      isWarning
+                        ? { backgroundColor: 'rgba(254, 242, 242, 0.5)' }
+                        : {}
+                    }
                   >
                     {/* Checkbox */}
                     {!isWarning ? (
                       <button
                         onClick={() => toggleChecked(idx)}
                         className={`mt-0.5 w-5 h-5 flex-shrink-0 rounded-sm flex items-center justify-center border-2 transition-colors ${
-                          isChecked
-                            ? 'bg-teal-500 border-teal-500'
-                            : ''
+                          isChecked ? 'bg-teal-500 border-teal-500' : ''
                         }`}
                         style={!isChecked ? { borderColor: '#0B1929' } : {}}
                         aria-label={isChecked ? 'Uncheck item' : 'Check item'}
                       >
                         {isChecked && (
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M2 6L5 9L10 3"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
                           </svg>
                         )}
                       </button>
@@ -391,7 +461,9 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
                     {/* Icon + Text */}
                     <div className="flex-1 min-w-0 flex items-start gap-3">
-                      <span className="text-lg flex-shrink-0 w-6 text-center">{style.icon}</span>
+                      <span className="text-lg flex-shrink-0 w-6 text-center">
+                        {style.icon}
+                      </span>
                       <span
                         className={`text-base leading-relaxed break-words ${
                           isWarning ? 'font-medium' : ''
@@ -427,15 +499,13 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
               const insights = session.insights;
               const isExpanded = expandedSessionId === session.id;
               const confidence = insights?.confidence;
-              const confLabel = confidence != null ? getConfidenceLabel(confidence) : null;
+              const confLabel =
+                confidence != null ? getConfidenceLabel(confidence) : null;
               const currentLevel = getReadingLevel(session.id);
               const sessionActions = insights?.actionsForPatient || [];
 
               return (
-                <div
-                  key={session.id}
-                  className="bg-white shadow-sm rounded-lg p-5"
-                >
+                <div key={session.id} className="bg-white shadow-sm rounded-lg p-5">
                   {/* Collapsed header */}
                   <div className="flex items-start gap-3">
                     <button
@@ -445,10 +515,15 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium" style={{ color: '#0B1929' }}>
+                            <span
+                              className="font-medium"
+                              style={{ color: '#0B1929' }}
+                            >
                               {formatDate(session.date)}
                             </span>
-                            <span className="text-sm text-gray-400">Visit with Dr. Emily Chen</span>
+                            <span className="text-sm text-gray-400">
+                              Visit with Dr. Emily Chen
+                            </span>
                           </div>
 
                           {insights?.plainSummary && (
@@ -459,25 +534,38 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
                           <div className="flex items-center gap-3 mt-2">
                             {confLabel && (
-                              <span className={`text-xs font-medium ${confLabel.color}`}>
+                              <span
+                                className={`text-xs font-medium ${confLabel.color}`}
+                              >
                                 AI Confidence: {confLabel.text}
                               </span>
                             )}
-                            {confidence != null && confidence < 70 && (
+                            {confidence != null && confidence < 70 && !insights.doctorNote && (
                               <span className="flex items-center gap-1 text-xs text-gray-400 italic">
                                 <Clock size={12} />
-                                Your doctor has been asked to review this. Check back soon.
+                                Your doctor has been asked to review this. Check
+                                back soon.
+                              </span>
+                            )}
+                            {insights?.doctorNote && (
+                              <span className="flex items-center gap-1 text-xs text-teal-600 font-medium">
+                                <UserCheck size={12} />
+                                Doctor Verified
                               </span>
                             )}
                           </div>
                         </div>
 
                         <div className="flex-shrink-0 ml-3 mt-1 text-gray-400">
-                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          {isExpanded ? (
+                            <ChevronUp size={20} />
+                          ) : (
+                            <ChevronDown size={20} />
+                          )}
                         </div>
                       </div>
                     </button>
-                    <button 
+                    <button
                       onClick={() => openShareModal(session.id, session.date)}
                       className="mt-1 p-1 text-gray-300 hover:text-teal-600 transition-colors"
                       title="Share this visit"
@@ -489,6 +577,18 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                   {/* Expanded content */}
                   {isExpanded && insights && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
+                      {/* Doctor Note in History */}
+                      {insights.doctorNote && (
+                        <div className="mb-4 bg-teal-50 p-4 rounded border-l-4 border-teal-400">
+                          <p className="text-xs font-bold text-teal-700 uppercase mb-1">
+                            Clinical Verification
+                          </p>
+                          <p className="text-sm italic text-teal-900">
+                            &quot;{insights.doctorNote}&quot;
+                          </p>
+                        </div>
+                      )}
+
                       {/* Reading level toggle */}
                       <div className="flex gap-4 mb-4">
                         <button
@@ -544,11 +644,17 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
                           </h4>
                           <div className="space-y-2">
                             {sortActions(sessionActions).map((a, i) => {
-                              const style = CATEGORY_STYLES[a.category] || CATEGORY_STYLES.followup;
+                              const style =
+                                CATEGORY_STYLES[a.category] ||
+                                CATEGORY_STYLES.followup;
                               return (
                                 <div key={i} className="flex items-start gap-3">
-                                  <span className="text-base flex-shrink-0 w-5 text-center mt-0.5">{style.icon}</span>
-                                  <span className="text-sm text-gray-600 break-words">{a.text}</span>
+                                  <span className="text-base flex-shrink-0 w-5 text-center mt-0.5">
+                                    {style.icon}
+                                  </span>
+                                  <span className="text-sm text-gray-600 break-words">
+                                    {a.text}
+                                  </span>
                                 </div>
                               );
                             })}
@@ -567,33 +673,54 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
         {shares.length > 0 && (
           <div className="mt-12 bg-white rounded-xl shadow-sm border border-teal-100 overflow-hidden">
             <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2" style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}>
+              <h2
+                className="text-lg font-bold flex items-center gap-2"
+                style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+              >
                 <Shield className="text-teal-600" size={20} />
                 Manage Access
               </h2>
             </div>
             <div className="divide-y divide-gray-50">
               {shares.map((share) => (
-                <div key={share.id} className="p-4 flex items-center justify-between">
+                <div
+                  key={share.id}
+                  className="p-4 flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${share.status === 'revoked' ? 'bg-gray-100 text-gray-400' : 'bg-teal-50 text-teal-600'}`}>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${share.status === 'revoked' ? 'bg-gray-100 text-gray-400' : 'bg-teal-50 text-teal-600'}`}
+                    >
                       <User size={18} />
                     </div>
                     <div>
-                      <div className={`font-medium ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}>
+                      <div
+                        className={`font-medium ${share.status === 'revoked' ? 'text-gray-400' : 'text-gray-900'}`}
+                      >
                         {share.shared_with_email}
                       </div>
                       <div className="text-xs text-gray-500 flex items-center gap-2">
-                        <span>{share.access_type === 'full_history' ? 'Full History' : 'Single Visit'}</span>
+                        <span>
+                          {share.access_type === 'full_history'
+                            ? 'Full History'
+                            : 'Single Visit'}
+                        </span>
                         <span className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span className={share.status === 'revoked' ? 'text-red-400' : 'text-teal-600'}>
-                          {share.status.charAt(0).toUpperCase() + share.status.slice(1)}
+                        <span
+                          className={
+                            share.status === 'revoked'
+                              ? 'text-red-400'
+                              : 'text-teal-600'
+                          }
+                        >
+                          {share.status.charAt(0).toUpperCase() +
+                            share.status.slice(1)}
                         </span>
                       </div>
                     </div>
                   </div>
                   {share.status !== 'revoked' && (
-                    <button 
+                    <button
                       onClick={() => handleRevoke(share.id)}
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                       title="Revoke access"

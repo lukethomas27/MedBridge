@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   ChevronDown,
@@ -13,12 +13,17 @@ import {
   Save,
   X,
   Mic,
+  UserCheck,
 } from 'lucide-react';
 import { generateInsights } from '../utils/generateInsights';
-import { createSession, updateTranscription, saveInsights } from '../lib/queries';
+import {
+  createSession,
+  updateTranscription,
+  saveInsights,
+  updateInsightNote,
+} from '../lib/queries';
 import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 import { useSettings } from '../context/SettingsContext';
-import { useEffect, useRef } from 'react';
 
 function ConfidenceGauge({ confidence }) {
   const radius = 48;
@@ -90,7 +95,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
   const [expandedSessions, setExpandedSessions] = useState(() => {
     if (settings.autoExpandSessions) {
       const all = {};
-      (patient.sessions || []).forEach(s => all[s.id] = true);
+      (patient.sessions || []).forEach(s => (all[s.id] = true));
       return all;
     }
     return {};
@@ -100,9 +105,19 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
   const [loadingSessions, setLoadingSessions] = useState({});
   const [recordingSessionId, setRecordingSessionId] = useState(null);
 
+  // For doctor addendum
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [noteBuffer, setNoteBuffer] = useState('');
+
   const autoSaveTimers = useRef({});
 
-  const { isRecording, interimText, error: micError, startRecording, stopRecording } = useDeepgramTranscription();
+  const {
+    isRecording,
+    interimText,
+    error: micError,
+    startRecording,
+    stopRecording,
+  } = useDeepgramTranscription();
 
   const sessions = [...(patient.sessions || [])].reverse();
   const latestSession = sessions[0] || null;
@@ -118,13 +133,10 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
     setExpandedSessions((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  const startEdit = useCallback(
-    (sessionId, currentText) => {
-      setEditingSessions((prev) => ({ ...prev, [sessionId]: true }));
-      setEditBuffers((prev) => ({ ...prev, [sessionId]: currentText }));
-    },
-    []
-  );
+  const startEdit = useCallback((sessionId, currentText) => {
+    setEditingSessions((prev) => ({ ...prev, [sessionId]: true }));
+    setEditBuffers((prev) => ({ ...prev, [sessionId]: currentText }));
+  }, []);
 
   const cancelEdit = useCallback((sessionId) => {
     setEditingSessions((prev) => ({ ...prev, [sessionId]: false }));
@@ -139,9 +151,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
         console.error('Error saving transcription:', err);
       }
       const updatedSessions = patient.sessions.map((s) =>
-        s.id === sessionId
-          ? { ...s, transcription: newText, insights: null }
-          : s
+        s.id === sessionId ? { ...s, transcription: newText, insights: null } : s
       );
       onUpdatePatient({ ...patient, sessions: updatedSessions });
       setEditingSessions((prev) => ({ ...prev, [sessionId]: false }));
@@ -159,14 +169,13 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
           patient.sessions
         );
         await saveInsights(session.id, insights);
-        
+
         const updatedSessions = patient.sessions.map((s) =>
           s.id === session.id ? { ...s, insights } : s
         );
         onUpdatePatient({ ...patient, sessions: updatedSessions });
       } catch (err) {
         console.error('Error generating insights:', err);
-        // Maybe show an error to the user here
       } finally {
         setLoadingSessions((prev) => ({ ...prev, [session.id]: false }));
       }
@@ -187,47 +196,69 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
     }
   }, [patient, onUpdatePatient]);
 
-  const handleTranscriptionChange = useCallback((sessionId, value) => {
-    setEditBuffers(prev => ({ ...prev, [sessionId]: value }));
+  const handleTranscriptionChange = useCallback(
+    (sessionId, value) => {
+      setEditBuffers((prev) => ({ ...prev, [sessionId]: value }));
 
-    if (settings.autoSaveTranscriptions) {
-      if (autoSaveTimers.current[sessionId]) {
-        clearTimeout(autoSaveTimers.current[sessionId]);
-      }
-      autoSaveTimers.current[sessionId] = setTimeout(async () => {
-        try {
-          await updateTranscription(sessionId, value);
-          onUpdatePatient({
-            ...patient,
-            sessions: patient.sessions.map(s => s.id === sessionId ? { ...s, transcription: value } : s)
-          });
-        } catch (err) {
-          console.error("Auto-save error:", err);
+      if (settings.autoSaveTranscriptions) {
+        if (autoSaveTimers.current[sessionId]) {
+          clearTimeout(autoSaveTimers.current[sessionId]);
         }
-      }, 2000); // 2 second debounce
-    }
-  }, [settings.autoSaveTranscriptions, patient, onUpdatePatient]);
+        autoSaveTimers.current[sessionId] = setTimeout(async () => {
+          try {
+            await updateTranscription(sessionId, value);
+            onUpdatePatient({
+              ...patient,
+              sessions: patient.sessions.map((s) =>
+                s.id === sessionId ? { ...s, transcription: value } : s
+              ),
+            });
+          } catch (err) {
+            console.error('Auto-save error:', err);
+          }
+        }, 2000); // 2 second debounce
+      }
+    },
+    [settings.autoSaveTranscriptions, patient, onUpdatePatient]
+  );
 
-  const toggleRecording = useCallback((sessionId) => {
-    if (recordingSessionId === sessionId) {
-      stopRecording();
-      setRecordingSessionId(null);
-      return;
-    }
+  const toggleRecording = useCallback(
+    (sessionId) => {
+      if (recordingSessionId === sessionId) {
+        stopRecording();
+        setRecordingSessionId(null);
+        return;
+      }
 
-    // Stop any existing recording
-    if (recordingSessionId) {
-      stopRecording();
-    }
+      if (recordingSessionId) {
+        stopRecording();
+      }
 
-    setRecordingSessionId(sessionId);
-    startRecording((finalText) => {
-      setEditBuffers(prev => ({
-        ...prev,
-        [sessionId]: (prev[sessionId] || '') + finalText
-      }));
-    });
-  }, [recordingSessionId, startRecording, stopRecording]);
+      setRecordingSessionId(sessionId);
+      startRecording((finalText) => {
+        handleTranscriptionChange(
+          sessionId,
+          (editBuffers[sessionId] || '') + finalText
+        );
+      });
+    },
+    [recordingSessionId, startRecording, stopRecording, editBuffers, handleTranscriptionChange]
+  );
+
+  const handleSaveNote = async (sessionId) => {
+    try {
+      await updateInsightNote(sessionId, noteBuffer);
+      const updatedSessions = patient.sessions.map((s) =>
+        s.id === sessionId
+          ? { ...s, insights: { ...s.insights, doctorNote: noteBuffer } }
+          : s
+      );
+      onUpdatePatient({ ...patient, sessions: updatedSessions });
+      setEditingNoteId(null);
+    } catch (err) {
+      console.error('Error saving doctor note:', err);
+    }
+  };
 
   const confidenceBadgeColor = (c) => {
     if (c >= 70) return 'border-[#00C9A7] text-teal-700 bg-teal-50';
@@ -240,8 +271,16 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       {/* Navigation bar */}
       <nav className="sticky top-0 z-10 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
-          <button onClick={onLogout} className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0">
-            <span className="animate-pulse" style={{ color: '#00C9A7', fontSize: '12px' }}>●</span>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-2 bg-transparent border-none cursor-pointer p-0"
+          >
+            <span
+              className="animate-pulse"
+              style={{ color: '#00C9A7', fontSize: '12px' }}
+            >
+              ●
+            </span>
             <span
               className="font-bold text-lg"
               style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
@@ -350,7 +389,10 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Resting HR</span>
                 <span>
-                  <span style={{ fontFamily: "'Courier New', monospace" }} className="text-sm font-medium">
+                  <span
+                    style={{ fontFamily: "'Courier New', monospace" }}
+                    className="text-sm font-medium"
+                  >
                     68 bpm
                   </span>
                   <span className="text-gray-400 ml-1">&rarr;</span>
@@ -359,7 +401,10 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Sleep average</span>
                 <span>
-                  <span style={{ fontFamily: "'Courier New', monospace" }} className="text-sm font-medium">
+                  <span
+                    style={{ fontFamily: "'Courier New', monospace" }}
+                    className="text-sm font-medium"
+                  >
                     7.1 hrs
                   </span>
                   <span className="text-teal-600 ml-1">&uarr;</span>
@@ -568,26 +613,104 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                           <div className="border-l-4 border-amber-400 bg-amber-50 p-4 rounded-r-lg flex items-start gap-3 mb-4">
                             <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                             <div>
+                              <p className="text-sm text-amber-800 font-medium">
+                                Review Required
+                              </p>
                               <p className="text-sm text-amber-800">
                                 AI confidence is below threshold (
-                                {insights.confidence}/100). The insights below
-                                may be incomplete. Please review and add more
-                                detail to the transcription.
+                                {insights.confidence}/100). Please review and
+                                add a clinical addendum to validate this
+                                session.
                               </p>
-                              <button
-                                onClick={() =>
-                                  startEdit(
-                                    session.id,
-                                    session.transcription || ''
-                                  )
-                                }
-                                className="text-sm text-amber-700 font-medium mt-1 hover:text-amber-900"
-                              >
-                                Add Context &rarr;
-                              </button>
+                              <div className="flex gap-4 mt-2">
+                                <button
+                                  onClick={() =>
+                                    startEdit(
+                                      session.id,
+                                      session.transcription || ''
+                                    )
+                                  }
+                                  className="text-sm text-amber-700 font-medium hover:text-amber-900"
+                                >
+                                  Edit Transcription &rarr;
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditingNoteId(session.id);
+                                    setNoteBuffer(insights.doctorNote || '');
+                                  }}
+                                  className="text-sm text-amber-700 font-medium hover:text-amber-900"
+                                >
+                                  Add Addendum &rarr;
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )}
+
+                        {/* Doctor's Addendum Section */}
+                        <div className="mb-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4
+                              className="text-sm font-semibold flex items-center gap-2"
+                              style={{ color: '#0B1929' }}
+                            >
+                              <UserCheck className="w-4 h-4 text-teal-600" />
+                              Clinical Addendum
+                            </h4>
+                            {editingNoteId !== session.id && (
+                              <button
+                                onClick={() => {
+                                  setEditingNoteId(session.id);
+                                  setNoteBuffer(insights.doctorNote || '');
+                                }}
+                                className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                              >
+                                {insights.doctorNote ? 'Edit' : 'Add Note'}
+                              </button>
+                            )}
+                          </div>
+
+                          {editingNoteId === session.id ? (
+                            <div className="bg-teal-50/50 p-4 rounded border border-teal-100">
+                              <textarea
+                                value={noteBuffer}
+                                onChange={(e) => setNoteBuffer(e.target.value)}
+                                placeholder="Add your clinical confirmation or corrections here..."
+                                className="w-full bg-white border border-teal-200 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[100px]"
+                              />
+                              <div className="flex gap-2 mt-2">
+                                <button
+                                  onClick={() => handleSaveNote(session.id)}
+                                  className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded font-medium"
+                                >
+                                  Save Addendum
+                                </button>
+                                <button
+                                  onClick={() => setEditingNoteId(null)}
+                                  className="text-xs text-gray-500 px-3 py-1.5 rounded font-medium border border-gray-200"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : insights.doctorNote ? (
+                            <div className="bg-[#0B1929] text-white p-4 rounded-lg shadow-sm">
+                              <p className="text-xs uppercase tracking-widest text-teal-400 font-bold mb-1">
+                                Doctor Verified
+                              </p>
+                              <p className="text-sm italic leading-relaxed">
+                                &quot;{insights.doctorNote}&quot;
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="bg-gray-50 border border-dashed border-gray-200 p-4 rounded text-center">
+                              <p className="text-xs text-gray-400">
+                                No clinical addendum added yet.
+                              </p>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Session Summary */}
                         {insights.summary && (
@@ -708,7 +831,8 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                         )}
 
                         {/* Recommended Actions */}
-                        {(insights.actionsForDoctor || insights.actionsForPatient) && (
+                        {(insights.actionsForDoctor ||
+                          insights.actionsForPatient) && (
                           <div className="mb-4">
                             <h4
                               className="text-sm font-semibold mb-2"
@@ -764,7 +888,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
                         className="w-full py-3 text-white text-sm font-medium rounded mt-4"
                         style={{ backgroundColor: '#0B1929' }}
                       >
-                        {insights ? 'Regenerate Insights' : 'Generate AI Insights'}
+                        {insights
+                          ? 'Regenerate Insights'
+                          : 'Generate AI Insights'}
                       </button>
                     )}
                   </div>
