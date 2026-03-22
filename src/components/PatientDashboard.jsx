@@ -16,6 +16,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
+import { useToast } from '../context/ToastContext';
 import ShareModal from './ShareModal';
 import { fetchSharesForPatient, revokeShare } from '../lib/queries';
 
@@ -54,6 +55,7 @@ function sortActions(actions) {
 
 export default function PatientDashboard({ patient, onLogout, onOpenSettings }) {
   const { settings } = useSettings();
+  const { addToast } = useToast();
   const firstName = patient.name?.split(' ')[0] || 'there';
   const allSessions = patient.sessions || [];
   // Only show insights that have been approved by the doctor
@@ -104,9 +106,11 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
     try {
       await revokeShare(shareId);
       loadShares();
+      addToast('Access revoked');
     } catch (err) {
       console.error('Error revoking share:', err);
       setShareError('Failed to revoke access. Please try again.');
+      addToast('Failed to revoke access', 'error');
     } finally {
       setRevokingId(null);
     }

@@ -26,6 +26,7 @@ import {
 } from '../lib/queries';
 import { useDeepgramTranscription } from '../hooks/useDeepgramTranscription';
 import { useSettings } from '../context/SettingsContext';
+import { useToast } from '../context/ToastContext';
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
@@ -107,6 +108,7 @@ function LoadingSkeleton() {
 
 export default function PatientDetailView({ patient, onBack, onUpdatePatient, onLogout }) {
   const { settings } = useSettings();
+  const { addToast } = useToast();
   const [expandedSessions, setExpandedSessions] = useState(() => {
     if (settings.autoExpandSessions) {
       const all = {};
@@ -171,6 +173,7 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       } catch (err) {
         console.error('Error saving transcription:', err);
         setOperationError('Failed to save transcription. Please try again.');
+        addToast('Failed to save transcription', 'error');
         setSavingSessions((prev) => ({ ...prev, [sessionId]: false }));
         return;
       }
@@ -180,8 +183,9 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       onUpdatePatient({ ...patient, sessions: updatedSessions });
       setEditingSessions((prev) => ({ ...prev, [sessionId]: false }));
       setSavingSessions((prev) => ({ ...prev, [sessionId]: false }));
+      addToast('Transcription saved');
     },
-    [patient, editBuffers, onUpdatePatient, savingSessions]
+    [patient, editBuffers, onUpdatePatient, savingSessions, addToast]
   );
 
   const handleGenerateInsights = useCallback(
@@ -199,14 +203,16 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
           s.id === session.id ? { ...s, insights } : s
         );
         onUpdatePatient({ ...patient, sessions: updatedSessions });
+        addToast('Insights generated — review and approve to release to patient');
       } catch (err) {
         console.error('Error generating insights:', err);
         setOperationError('Failed to generate insights. Please try again.');
+        addToast('Failed to generate insights', 'error');
       } finally {
         setLoadingSessions((prev) => ({ ...prev, [session.id]: false }));
       }
     },
-    [patient, onUpdatePatient]
+    [patient, onUpdatePatient, addToast]
   );
 
   const addNewSession = useCallback(async () => {
@@ -286,9 +292,11 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
       );
       onUpdatePatient({ ...patient, sessions: updatedSessions });
       setEditingNoteId(null);
+      addToast('Clinical addendum saved');
     } catch (err) {
       console.error('Error saving doctor note:', err);
       setOperationError('Failed to save addendum. Please try again.');
+      addToast('Failed to save addendum', 'error');
     }
   };
 
@@ -304,9 +312,11 @@ export default function PatientDetailView({ patient, onBack, onUpdatePatient, on
             : s
         );
         onUpdatePatient({ ...patient, sessions: updatedSessions });
+        addToast('Insights approved and released to patient');
       } catch (err) {
         console.error('Error approving insights:', err);
         setOperationError('Failed to approve insights. Please try again.');
+        addToast('Failed to approve insights', 'error');
       } finally {
         setApprovingSessions((prev) => ({ ...prev, [sessionId]: false }));
       }

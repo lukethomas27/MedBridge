@@ -11,6 +11,7 @@ import RoleSwitcherDock from './components/RoleSwitcherDock';
 import InvitePage from './components/InvitePage';
 import SettingsPage from './components/SettingsPage';
 import { SettingsProvider } from './context/SettingsContext';
+import { ToastProvider } from './context/ToastContext';
 
 const STYLES = `
 @keyframes fadeIn {
@@ -220,6 +221,7 @@ export default function App() {
 
   return (
     <SettingsProvider>
+    <ToastProvider>
       <style>{STYLES}</style>
       <Routes>
         <Route path="/invite/:token" element={<InvitePage />} />
@@ -247,6 +249,7 @@ export default function App() {
           }
         />
       </Routes>
+    </ToastProvider>
     </SettingsProvider>
   );
 }
