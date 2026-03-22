@@ -61,8 +61,14 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
     ...s,
     insights: s.insights?.approved ? s.insights : null,
   }));
-  const mostRecent = sessions.length > 0 ? sessions[0] : null;
-  const mostRecentInsights = mostRecent?.insights || null;
+  
+  // Find the actual most recent session for UI labels (even if not approved)
+  const mostRecent = allSessions.length > 0 ? allSessions[0] : null;
+  
+  // Find the most recent session that HAS approved insights for the "Today" panel
+  const latestApprovedSession = sessions.find(s => s.insights !== null);
+  const mostRecentInsights = latestApprovedSession?.insights || null;
+  const isPendingNewAnalysis = allSessions.length > 0 && !allSessions[0].insights?.approved && allSessions[0].insights !== null;
 
   const [checkedItems, setCheckedItems] = useState({});
   const [expandedSessionId, setExpandedSessionId] = useState(null);
@@ -678,15 +684,21 @@ export default function PatientDashboard({ patient, onLogout, onOpenSettings }) 
 
         {/* ========== RIGHT PANEL (sticky) — Action Plan Checklist ========== */}
         <div className="lg:w-[28%] lg:sticky lg:top-20 self-start">
-          <h2
-            className="text-xl font-bold mb-2"
-            style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
-          >
-            What to do today
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Based on your most recent visit
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              className="text-xl font-bold"
+              style={{ fontFamily: 'Georgia, serif', color: '#0B1929' }}
+            >
+              What to do today
+            </h2>
+            {isPendingNewAnalysis && (
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded text-[10px] font-bold text-amber-600 uppercase tracking-wider border border-amber-100">
+                <Clock size={12} />
+                Update Pending
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mb-6">Based on your most recent visit</p>
           {actions.length > 0 ? (
             <div>
 
